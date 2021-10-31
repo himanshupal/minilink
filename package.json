@@ -1,4 +1,6 @@
 {
+	"name": "minilink",
+	"displayName": "MiniLink UI",
 	"version": "0.1.0",
 	"license": "GPL-3.0-or-later",
 	"scripts": {
@@ -14,10 +16,9 @@
 		"@types/node": "^16.7.1",
 		"@vitejs/plugin-vue": "^1.2.5",
 		"@vue/compiler-sfc": "^3.0.5",
-		"autoprefixer": "^10.3.2",
-		"postcss": "^8.3.6",
+		"pug": "^3.0.2",
 		"sass": "^1.38.1",
-		"tailwindcss": "^2.2.7",
+		"tslib": "^2.3.1",
 		"vite": "^2.4.2"
 	}
 }

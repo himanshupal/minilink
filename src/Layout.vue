@@ -1,5 +1,13 @@
-<template>
-	<router-view />
+<template lang="pug">
+router-view
+footer.footer
+	|	Built by
+	a(href="https://himanshupal.xyz" target="_blank") @himanshupal
+	| using
+	a(href="https://v3.vuejs.org" target="_blank") Vue3,
+	a(href="https://pugjs.org" target="_blank") Pug
+	| &amp;
+	a(href="https://golang.org" target="_blank") Go
 </template>
 
 <script lang="ts">
@@ -11,6 +19,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import 'tailwindcss/tailwind.css';
-@import url('https://fonts.googleapis.com/css2?&family=Special+Elite&family=Spartan&family=Abril+Fatface&display=swap');
+@import './styles/global.scss';
 </style>

@@ -1,29 +1,195 @@
-<template>
-	<div class="h-screen grid gap-4 place-content-center text-center dark:bg-gray-900 dark:text-gray-100">
-		<div class="text-9xl rounded border-2 bg-yellow-300 font-retro p-4">{{ count }}</div>
-
-		<div class="flex gap-4 items-center justify-center">
-			<button @click="count++" class="text-6xl text-green-600">+</button>
-			<button @click="count--" class="text-6xl text-red-600">-</button>
-		</div>
-
-		<div class="font-retro">I am RETRO</div>
-		<div class="font-sans">I am SANS</div>
-		<div class="font-serif">I am SANS-SERIF</div>
-	</div>
+<template lang="pug">
+Header(:title="path" subtitle="URL Shortner")
+section.home
+	.home__tabs
+		button.home__tab(:class="{ selected: userType === `new`}" @click="userType = `new`") New User
+		button.home__tab(:class="{ selected: userType === `existing`}" @click="userType = `existing`") I have a Username
+	form.home__form(@submit.prevent="proceed")
+		.home__form__field
+			label.label(for="username") Username
+			input.input(name="username" v-model="username" autofocus)
+			label.label.label--error(v-if="!!error.username") {{ error.username }}
+		transition(name="bounce")
+			.home__form__field(v-if="userType === `new`")
+				label.label(for="password") Password
+				input.input(name="password" type="password" v-model="password")
+				label.label.label--error(v-if="!!error.password") {{ error.password }}
+		.home__form__field
+			button.button(type="submit") {{ buttonText }}
+			label.label.label--info(v-if="showInfo" @click="userType = `new`") Can't remember username? Just create a new account, old one will be deleted automatically after 180 days of inactivity
+			transition(name="bounce")
+				label.label(v-if="!isEmptyObject(serverMessage)" :class="[ `label--${serverMessage.type}` ]") {{ serverMessage.value }}
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import Header from '../components/Header.vue'
+
+type ErrorFields = {
+	username?: string
+	password?: string
+}
+
+type ServerMessage = {
+	type?: `error` | `message`
+	value?: string
+}
+
+type UserType = `existing` | `new`
+
+const validate = (data: string, name: string, minLength: number): string => {
+	if (!data.length) {
+		return `Please provide a ${name}`
+	} else if (data.length < minLength) {
+		return `${name.charAt(0).toUpperCase() + name.slice(1)} must contain atleast ${minLength} characters`
+	}
+
+	return ``
+}
 
 export default defineComponent({
 	name: 'Home',
 
+	components: {
+		Header
+	},
+
 	setup() {
-		const count = ref<number>(0)
+		const { hash } = useRoute()
+		const { push, replace } = useRouter()
+
+		document.title = `MiniLink`
+		const path = location.hostname
+
+		const buttonText = ref<string>(``)
+		const username = ref<string>(``)
+		const password = ref<string>(``)
+
+		const error = reactive<ErrorFields>({})
+		const serverMessage = reactive<ServerMessage>({})
+
+		onMounted(async () => {
+			if (!!hash) {
+				await replace({ hash: hash })
+			} else {
+				await replace({ hash: `#login` })
+			}
+		})
+
+		const setButtontext = (currentTab: UserType) => {
+			switch (currentTab) {
+				case `existing`:
+					return (buttonText.value = `Continue`)
+				case `new`:
+					return (buttonText.value = `Register`)
+			}
+		}
+
+		const userType = computed<UserType>({
+			get() {
+				const currentTab = hash === `#login` ? `existing` : `new`
+
+				setButtontext(currentTab)
+				return currentTab
+			},
+			set(value: UserType) {
+				if (value === `existing`) {
+					replace({ hash: `#login` })
+				} else {
+					replace({ hash: `#register` })
+				}
+
+				setButtontext(value)
+
+				if (!isEmptyObject(serverMessage)) {
+					delete serverMessage.type
+					delete serverMessage.value
+				}
+			}
+		})
+
+		const showInfo = computed<boolean>(() => {
+			return userType.value === `existing` && isEmptyObject(serverMessage)
+		})
+
+		const isEmptyObject = (object: Record<string, any>): boolean => {
+			return !Object.values(object).filter((x) => x.length).length
+		}
+
+		const startLoading = () => {
+			const initialText = buttonText.value
+			const maxDots = 3
+			let dots = 0
+
+			return setInterval(() => {
+				if (dots === maxDots) {
+					buttonText.value = initialText
+					dots = 0
+				} else {
+					buttonText.value = buttonText.value + `.`.repeat(dots)
+					dots++
+				}
+			}, 250)
+		}
+
+		const register = async (username: string, password: string): Promise<void> => {
+			console.log({ username, password })
+			const stopLoading = startLoading()
+
+			setTimeout(() => {
+				clearInterval(stopLoading)
+				userType.value = `existing`
+
+				setTimeout(() => {
+					serverMessage.type = `message`
+					serverMessage.value = `Registration successful, login to proceed`
+				}, 500)
+			}, 2500)
+		}
+
+		const login = async (username: string): Promise<void> => {
+			console.log({ username })
+			const stopLoading = startLoading()
+
+			setTimeout(async () => {
+				clearInterval(stopLoading)
+
+				await push({ name: `Links`, params: { username } })
+			}, 2500)
+		}
+
+		const proceed = async (): Promise<void> => {
+			if (userType.value === `existing`) {
+				error.username = validate(username.value, `username`, 3)
+
+				if (isEmptyObject(error)) {
+					await login(username.value)
+				}
+			} else {
+				error.username = validate(username.value, `username`, 3)
+				error.password = validate(password.value, `password`, 7)
+
+				if (isEmptyObject(error)) {
+					await register(username.value, password.value)
+				}
+			}
+		}
 
 		return {
-			count
+			path,
+			userType,
+			buttonText,
+
+			error,
+			showInfo,
+			serverMessage,
+
+			username,
+			password,
+
+			proceed,
+			isEmptyObject
 		}
 	}
 })

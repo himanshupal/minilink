@@ -1,0 +1,25 @@
+@import './variables';
+
+.header {
+	padding: 1.5rem;
+
+	&__title {
+		font-size: 2.5rem;
+	}
+
+	@media (min-width: 475px) {
+		padding: 2.5rem;
+
+		&__title {
+			font-size: 2.15rem;
+		}
+	}
+
+	@media (min-width: 768px) {
+		padding: 3rem 4.5rem;
+
+		&__title {
+			font-size: 2.75rem;
+		}
+	}
+}

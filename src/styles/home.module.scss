@@ -1,0 +1,74 @@
+.home {
+	padding: 1.5rem;
+	display: flex;
+	flex-direction: column;
+
+	&__tabs {
+		display: flex;
+	}
+
+	&__tab {
+		flex: 1;
+		transition: all 100ms ease-in-out;
+
+		&.selected {
+			background: $color-yellow;
+			font-weight: 600;
+		}
+	}
+
+	&__form {
+		display: flex;
+		flex-direction: column;
+
+		&__field {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			padding: 1rem 0;
+
+			.label {
+				padding: 2px 0;
+
+				&--error,
+				&--info,
+				&--message {
+					text-align: center;
+				}
+
+				&--error {
+					font-size: 14px;
+					color: $color-red;
+				}
+				&--info {
+					font-size: 12px;
+					cursor: pointer;
+				}
+				&--message {
+					color: $color-green;
+				}
+			}
+
+			.input {
+				font-family: inherit;
+			}
+
+			.button {
+				font-weight: 600;
+			}
+		}
+	}
+
+	@media (min-width: 475px) {
+		padding: 2.5rem;
+		max-width: 360px;
+	}
+
+	@media (min-width: 768px) {
+		padding: 3rem 4.5rem;
+
+		&__form {
+			flex: 7;
+		}
+	}
+}
