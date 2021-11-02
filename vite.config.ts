@@ -13,5 +13,8 @@ export default defineConfig({
 			'@': resolve(__dirname, 'src')
 		}
 	},
-	plugins: [vue()]
+	plugins: [vue()],
+	server: {
+		port: 1234
+	}
 })

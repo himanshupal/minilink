@@ -1,0 +1,149 @@
+@import './variables.scss';
+
+.links {
+	padding: 1.5rem;
+	margin-bottom: 44px;
+
+	&__cards {
+		gap: 0.75rem;
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	&__card {
+		flex: 1;
+		padding: 0.5rem;
+		background: $color-card;
+		border: 1px dotted $color-brown;
+		transition: border 150ms ease-in-out;
+		position: relative;
+		z-index: 0;
+		min-width: 50%;
+		min-height: 150px;
+
+		.icon {
+			width: 30px;
+			height: 30px;
+			right: 0.5rem;
+			cursor: pointer;
+			position: absolute;
+			border-radius: 2px;
+			display: none;
+
+			&--delete {
+				top: 0.5rem;
+				background: $color-red;
+			}
+
+			&--share {
+				top: 3.5rem;
+				background-color: $color-yellow;
+			}
+		}
+
+		&__count {
+			position: absolute;
+			top: 50%;
+			right: 17.5%;
+			font-size: 96px;
+			font-weight: 900;
+			transform: translateY(-50%);
+			font-family: 'Bebas Neue', Arial, Helvetica, sans-serif;
+			color: $color-dark;
+			z-index: -1;
+		}
+
+		.field {
+			flex: 1;
+			padding: 0.25rem 0;
+		}
+
+		.label {
+			font-size: 0.75rem;
+			color: $color-gray;
+		}
+
+		.data {
+			font-weight: 500;
+			font-size: 1.15rem;
+			font-family: 'Red Hat Display';
+			letter-spacing: 0.75px;
+
+			overflow: hidden;
+			text-overflow: ellipsis;
+
+			&--about,
+			&--link {
+				padding-right: 2.5rem;
+			}
+		}
+
+		.timestamps {
+			gap: 0.5rem;
+			display: flex;
+			padding: 0.25rem 0;
+		}
+
+		&:hover {
+			border: 1px dotted $color-gray;
+
+			.icon {
+				display: flex;
+			}
+		}
+
+		.confirm {
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: space-evenly;
+
+			&__buttons {
+				width: 85%;
+				display: flex;
+				justify-content: space-evenly;
+
+				button {
+					width: 100px;
+
+					&.yes {
+						color: $color-light;
+						background: $color-red;
+					}
+					&.no {
+						background: $color-green;
+					}
+				}
+			}
+		}
+	}
+
+	@media (min-width: 475px) {
+		padding: 1.5rem 2.5rem;
+
+		.icon {
+			&--share {
+				top: 3.25rem;
+			}
+		}
+	}
+
+	@media (min-width: 768px) {
+		padding: 1.5rem 4.5rem;
+
+		&__card {
+			min-width: 326px;
+
+			&__count {
+				font-size: 126px;
+			}
+
+			.icon {
+				&--share {
+					top: 3rem;
+				}
+			}
+		}
+	}
+}

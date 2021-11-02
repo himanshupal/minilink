@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?&family=Antic+Slab&family=Rampart+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?&family=Antic+Slab&family=Rampart+One&family=Bebas+Neue&family=Red+Hat+Display&display=swap');
 
 // Variables
 @import './variables.scss';
@@ -8,6 +8,9 @@
 @import './footer.module.scss';
 @import './links.module.scss';
 @import './home.module.scss';
+@import './modal.module.scss';
+@import './notfound.module.scss';
+@import './loading.module.scss';
 
 * {
 	padding: unset;
@@ -73,6 +76,25 @@
 		}
 		50% {
 			transform: scale(1.15);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+}
+
+.shrink {
+	&-enter-active {
+		animation: shrink-in 0.5s;
+	}
+
+	&-leave-active {
+		animation: shrink-in 0.5s reverse;
+	}
+
+	@keyframes shrink-in {
+		0% {
+			transform: scale(0);
 		}
 		100% {
 			transform: scale(1);

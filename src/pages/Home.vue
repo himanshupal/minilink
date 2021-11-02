@@ -7,12 +7,12 @@ section.home
 	form.home__form(@submit.prevent="proceed")
 		.home__form__field
 			label.label(for="username") Username
-			input.input(name="username" v-model="username" autofocus)
+			input.input(name="username" v-model.trim="username" autofocus)
 			label.label.label--error(v-if="!!error.username") {{ error.username }}
 		transition(name="bounce")
 			.home__form__field(v-if="userType === `new`")
 				label.label(for="password") Password
-				input.input(name="password" type="password" v-model="password")
+				input.input(name="password" type="password" v-model.trim="password")
 				label.label.label--error(v-if="!!error.password") {{ error.password }}
 		.home__form__field
 			button.button(type="submit") {{ buttonText }}
@@ -56,11 +56,11 @@ export default defineComponent({
 	},
 
 	setup() {
-		const { hash } = useRoute()
-		const { push, replace } = useRouter()
+		const route = useRoute()
+		const router = useRouter()
+		const path = location.hostname
 
 		document.title = `MiniLink`
-		const path = location.hostname
 
 		const buttonText = ref<string>(``)
 		const username = ref<string>(``)
@@ -70,10 +70,10 @@ export default defineComponent({
 		const serverMessage = reactive<ServerMessage>({})
 
 		onMounted(async () => {
-			if (!!hash) {
-				await replace({ hash: hash })
+			if (!!route.hash) {
+				await router.replace({ hash: route.hash })
 			} else {
-				await replace({ hash: `#login` })
+				await router.replace({ hash: `#login` })
 			}
 		})
 
@@ -88,16 +88,16 @@ export default defineComponent({
 
 		const userType = computed<UserType>({
 			get() {
-				const currentTab = hash === `#login` ? `existing` : `new`
+				const currentTab = route.hash === `#login` ? `existing` : `new`
 
 				setButtontext(currentTab)
 				return currentTab
 			},
 			set(value: UserType) {
 				if (value === `existing`) {
-					replace({ hash: `#login` })
+					router.replace({ hash: `#login` })
 				} else {
-					replace({ hash: `#register` })
+					router.replace({ hash: `#register` })
 				}
 
 				setButtontext(value)
@@ -155,7 +155,7 @@ export default defineComponent({
 			setTimeout(async () => {
 				clearInterval(stopLoading)
 
-				await push({ name: `Links`, params: { username } })
+				await router.push({ name: `Links`, params: { username } })
 			}, 2500)
 		}
 

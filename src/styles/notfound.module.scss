@@ -1,0 +1,42 @@
+@import './variables.scss';
+
+.not-found {
+	padding: 2.5rem;
+
+	&__title {
+		font-family: 'Bebas Neue', Arial, Helvetica, sans-serif;
+		font-size: 72px;
+		line-height: 1;
+		color: $color-red;
+	}
+
+	&__message {
+		padding: 0.75rem 0 1rem;
+		color: $color-yellow;
+	}
+
+	&__home {
+		color: $color-green;
+		font-size: 12px;
+	}
+
+	@media (min-width: 475px) {
+		&__title {
+			font-size: 120px;
+		}
+
+		&__message {
+			font-size: 1.15rem;
+		}
+
+		&__home {
+			font-size: 1rem;
+		}
+	}
+
+	@media (min-width: 768px) {
+		&__title {
+			font-size: 200px;
+		}
+	}
+}

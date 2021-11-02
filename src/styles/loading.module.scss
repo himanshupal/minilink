@@ -1,0 +1,14 @@
+@import './variables.scss';
+
+.loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: calc(100vh - 44px);
+
+	&__message {
+		font-size: 2.5rem;
+		padding: 1rem;
+		width: 272px;
+	}
+}

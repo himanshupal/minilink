@@ -1,6 +1,7 @@
 .home {
-	padding: 1.5rem;
 	display: flex;
+	padding: 1.5rem;
+	margin-bottom: 44px;
 	flex-direction: column;
 
 	&__tabs {
@@ -29,23 +30,17 @@
 
 			.label {
 				padding: 2px 0;
-
-				&--error,
-				&--info,
-				&--message {
-					text-align: center;
-				}
+				text-align: center;
 
 				&--error {
-					font-size: 14px;
 					color: $color-red;
+				}
+				&--message {
+					color: $color-green;
 				}
 				&--info {
 					font-size: 12px;
 					cursor: pointer;
-				}
-				&--message {
-					color: $color-green;
 				}
 			}
 

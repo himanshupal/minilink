@@ -1,6 +1,6 @@
 <template lang="pug">
 router-view
-footer.footer
+footer.footer(v-if="includeFooter")
 	|	Built by
 	a(href="https://himanshupal.xyz" target="_blank") @himanshupal
 	| using
@@ -11,10 +11,24 @@ footer.footer
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, onBeforeMount, ref } from 'vue'
 
 export default defineComponent({
-	name: 'Layout'
+	name: 'Layout',
+
+	setup() {
+		const includeFooter = ref<boolean>(true)
+
+		const hideFooterIn = [`/404`]
+
+		onBeforeMount(() => {
+			includeFooter.value = !hideFooterIn.includes(location.pathname)
+		})
+
+		return {
+			includeFooter
+		}
+	}
 })
 </script>
 

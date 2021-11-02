@@ -5,6 +5,7 @@ import { appName } from '@/config.json'
 
 import Home from '@/pages/Home.vue'
 import Links from '@/pages/Links.vue'
+import NotFound from '@/pages/NotFound.vue'
 
 const routes: Array<RouteRecordRaw> = [
 	{
@@ -19,6 +20,18 @@ const routes: Array<RouteRecordRaw> = [
 		meta: {
 			title: `Links`
 		}
+	},
+	{
+		path: `/404`,
+		name: `NotFound`,
+		component: NotFound,
+		meta: {
+			title: `Not Found`
+		}
+	},
+	{
+		path: `/:any(.*)`,
+		redirect: `/404`
 	}
 ]
 
