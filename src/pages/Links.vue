@@ -63,10 +63,10 @@ Modal(v-if="showModal" @close="showModal = false")
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import dayjs from 'dayjs'
-import Loading from '../components/Loading.vue'
-import Header from '../components/Header.vue'
-import Modal from '../components/Modal.vue'
-import Icon from '../components/Icon.vue'
+import Loading from '@/components/Loading.vue'
+import Header from '@/components/Header.vue'
+import Modal from '@/components/Modal.vue'
+import Icon from '@/components/Icon.vue'
 
 type NewLink = {
 	url?: string

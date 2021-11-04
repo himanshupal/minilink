@@ -17,6 +17,7 @@ const routes: Array<RouteRecordRaw> = [
 		path: `/:username`,
 		name: `Links`,
 		component: Links,
+		props: true,
 		meta: {
 			title: `Links`
 		}
@@ -25,13 +26,15 @@ const routes: Array<RouteRecordRaw> = [
 		path: `/404`,
 		name: `NotFound`,
 		component: NotFound,
+		props: true,
 		meta: {
 			title: `Not Found`
 		}
 	},
 	{
 		path: `/:any(.*)`,
-		redirect: `/404`
+		redirect: `/404`,
+		props: true
 	}
 ]
 

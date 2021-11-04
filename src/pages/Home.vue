@@ -24,7 +24,7 @@ section.home
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Header from '../components/Header.vue'
+import Header from '@/components/Header.vue'
 
 type ErrorFields = {
 	username?: string
