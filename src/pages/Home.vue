@@ -88,7 +88,7 @@ export default defineComponent({
 
 		const userType = computed<UserType>({
 			get() {
-				const currentTab = route.hash === `#login` ? `existing` : `new`
+				const currentTab = route.hash === `#register` ? `new` : `existing`
 
 				setButtontext(currentTab)
 				return currentTab
