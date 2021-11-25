@@ -5,9 +5,10 @@ footer.footer(v-if="includeFooter")
 	a(href="https://himanshupal.xyz" target="_blank") @himanshupal
 	| using
 	a(href="https://v3.vuejs.org" target="_blank") Vue3,
-	a(href="https://pugjs.org" target="_blank") Pug
+	a(href="https://pugjs.org" target="_blank") Pug,
+	a(href="https://fastify.io" target="_blank") Fastify
 	| &amp;
-	a(href="https://golang.org" target="_blank") Go
+	a(href="https://mongodb.com" target="_blank") MongoDB
 </template>
 
 <script lang="ts">

@@ -24,7 +24,10 @@ section.home
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { AxiosError } from 'axios'
+
 import Header from '@/components/Header.vue'
+import axios from '@/axios'
 
 type ErrorFields = {
 	username?: string
@@ -38,11 +41,17 @@ type ServerMessage = {
 
 type UserType = `existing` | `new`
 
-const validate = (data: string, name: string, minLength: number): string => {
+const validate = (data: string, name: string, minLength: number, maxLength?: number): string => {
 	if (!data.length) {
 		return `Please provide a ${name}`
 	} else if (data.length < minLength) {
 		return `${name.charAt(0).toUpperCase() + name.slice(1)} must contain atleast ${minLength} characters`
+	}
+
+	if (maxLength) {
+		if (data.length > maxLength) {
+			return `${name.charAt(0).toUpperCase() + name.slice(1)} can't be more than ${maxLength} characters`
+		}
 	}
 
 	return ``
@@ -134,40 +143,41 @@ export default defineComponent({
 		}
 
 		const register = async (username: string, password: string): Promise<void> => {
-			console.log({ username, password })
 			const stopLoading = startLoading()
 
-			setTimeout(() => {
-				clearInterval(stopLoading)
-				userType.value = `existing`
+			try {
+				const { status } = await axios.post('/register', { username, password })
 
-				setTimeout(() => {
+				if (status === 200) {
 					serverMessage.type = `message`
 					serverMessage.value = `Registration successful, login to proceed`
-				}, 500)
-			}, 2500)
+
+					userType.value = `existing`
+				}
+			} catch (error: any) {
+				const err: AxiosError = error
+				serverMessage.type = `error`
+				serverMessage.value = err.response?.data.message
+			} finally {
+				clearInterval(stopLoading)
+			}
 		}
 
 		const login = async (username: string): Promise<void> => {
-			console.log({ username })
 			const stopLoading = startLoading()
-
-			setTimeout(async () => {
-				clearInterval(stopLoading)
-
-				await router.push({ name: `Links`, params: { username } })
-			}, 2500)
+			await router.push({ name: `Links`, params: { username } })
+			clearInterval(stopLoading)
 		}
 
 		const proceed = async (): Promise<void> => {
 			if (userType.value === `existing`) {
-				error.username = validate(username.value, `username`, 3)
+				error.username = validate(username.value, `username`, 3, 11)
 
 				if (isEmptyObject(error)) {
 					await login(username.value)
 				}
 			} else {
-				error.username = validate(username.value, `username`, 3)
+				error.username = validate(username.value, `username`, 3, 11)
 				error.password = validate(password.value, `password`, 7)
 
 				if (isEmptyObject(error)) {

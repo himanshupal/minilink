@@ -4,6 +4,7 @@ import { createRouter, createWebHistory, Router, RouterHistory, RouteRecordRaw, 
 import { appName } from '@/config.json'
 
 import Home from '@/pages/Home.vue'
+import Link from '@/pages/Link.vue'
 import Links from '@/pages/Links.vue'
 import NotFound from '@/pages/NotFound.vue'
 
@@ -21,6 +22,11 @@ const routes: Array<RouteRecordRaw> = [
 		meta: {
 			title: `Links`
 		}
+	},
+	{
+		path: `/:username/:count`,
+		name: `Link`,
+		component: Link
 	},
 	{
 		path: `/404`,

@@ -1,78 +1,92 @@
 <template lang="pug">
-template(v-if="loading")
-	Loading
-template(v-else)
-	Header(:title="username" :subtitle="`Are you sure to delete this?`")
-		button(@click="showModal = true") Create New
-	section.links
-		.links__cards
-			transition-group(name="shrink")
-				.links__card(v-for="link in data" :key="link.id")
-					.links__card__count {{ link.count }}
-					template(v-if="selected === link.id")
-						.confirm
-							.confirm__message {{ message }}
-							.confirm__buttons(v-if="selected === toDelete")
-								button.yes(@click="deleteLink") Yes
-								button.no(@click="toDelete = ``") No
-					template(v-else)
-						.field
-							.data.data--about {{ link.about }}
-						.field
-							.label Short URL
-							.data.data--link {{ link.short }}
-						.field
-							.label Full URL
-							.data.data--link {{ link.full }}
-						.timestamps
+div
+	template(v-if="loading")
+		Loading
+	template(v-else)
+		Header(:title="username" :subtitle="`Last activity: ${lastActive}`")
+			button(@click="showModal = true") Create New
+		section.links
+			.links__cards
+				transition-group(name="shrink")
+					.links__card(v-for="link in data" :key="link._id")
+						.links__card__count {{ link.count }}
+						template(v-if="selected === link._id")
+							.confirm
+								.confirm__message {{ message }}
+								.confirm__buttons(v-if="selected === toDelete")
+									button.yes(@click="showDeleteModal = true") Yes
+									button.no(@click="toDelete = ``") No
+						template(v-else)
 							.field
-								.label Created At
-								.data {{ link.createdAt }}
+								.data.data--about {{ link.info }}
 							.field
-								.label Expiring On
-								.data {{ link.expiringOn }}
-						Icon.icon--delete(type="trash" @click="toDelete = link.id")
-						Icon.icon--share(:type="sharingAllowed ? `share` : `copy`" color="#151515" @click="share(link.id)")
-Modal(v-if="showModal" @close="showModal = false")
-	form.newlink(@submit.prevent="createLink")
-		.newlink__field
-			label.label Full URL of Website
-			input.input( v-model="newLink.url")
-			label.label.label--error {{ formErrors.url }}
-		.newlink__field
-			label.label Short info about this URL
-			input.input(maxlength="48" v-model="newLink.about")
-			label.label.label--error {{ formErrors.about }}
-		.newlink__field
-			label.label Your Password
-			input.input(type="password" v-model="newLink.password")
-			label.label.label--error {{ formErrors.password }}
-		.newlink__field
-			label.label Expire at
-			input.input(type="datetime-local" v-model="newLink.expireOn" :min="now")
-			label.label.label--error {{ formErrors.expireOn }}
-		.newlink__field
-			button.button(type="submit") Create New MiniLink
-		transition(name="shrink")
-			.newlink__field(v-if="formErrors.serverMessage")
-				label.label(:class="[`label--${formErrors.serverMessage.type}`]") {{ formErrors.serverMessage.value }}
-				label.label.label--info(v-if="formErrors.serverMessage.type === `message`") Closing in {{ autoClose }} seconds...
+								.label Short URL
+								.data.data--link(@click="push(`${fullPath}/${link.count}`)") {{ `${fullPath}/${link.count}` }}
+							.field
+								.label Full URL
+								a.data.data--link(target="_blank" :href="link.url") {{ link.url }}
+							.timestamps
+								.field
+									.label Created At
+									.data {{ formatDate(link.createdAt) }}
+								.field
+									.label Expiring On
+									.data {{ formatDate(link.expireAt) }}
+							Icon.icon--delete(type="trash" @click="toDelete = link._id")
+							Icon.icon--share(:type="sharingAllowed ? `share` : `copy`" color="#151515" @click="share(link._id)")
+	Modal(v-if="showModal" @close="showModal = false")
+		form.newlink(@submit.prevent="createLink")
+			.newlink__field
+				label.label Full URL of Website
+				input.input( v-model="newLink.url")
+				label.label.label--error {{ formErrors.url }}
+			.newlink__field
+				label.label Short info about this URL
+				input.input(maxlength="48" v-model="newLink.about")
+				label.label.label--error {{ formErrors.about }}
+			.newlink__field
+				label.label Your Password
+				input.input(type="password" v-model="newLink.password")
+				label.label.label--error {{ formErrors.password }}
+			.newlink__field
+				label.label Expire at
+				input.input(type="datetime-local" v-model="newLink.expireAt" :min="now")
+				label.label.label--error {{ formErrors.expireAt }}
+			.newlink__field
+				button.button(type="submit") Shorten Link
+			transition(name="shrink")
+				.newlink__field(v-if="formErrors.serverMessage")
+					label.label(:class="[`label--${formErrors.serverMessage.type}`]") {{ formErrors.serverMessage.value }}
+	Modal(v-if="showDeleteModal" @close="showDeleteModal = false")
+		form.newlink(@submit.prevent="deleteLink")
+			.newlink__field
+				label.label Enter Password
+				input.input(type="password" v-model="newLink.password")
+				label.label.label--error {{ formErrors.password }}
+			.newlink__field
+				button.button(type="submit") Delete
+			transition(name="shrink")
+				.newlink__field(v-if="formErrors.serverMessage")
+					label.label(:class="[`label--${formErrors.serverMessage.type}`]") {{ formErrors.serverMessage.value }}
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { AxiosError } from 'axios'
 import dayjs from 'dayjs'
+
 import Loading from '@/components/Loading.vue'
 import Header from '@/components/Header.vue'
 import Modal from '@/components/Modal.vue'
 import Icon from '@/components/Icon.vue'
+import axios from '@/axios'
 
 type NewLink = {
 	url?: string
 	about?: string
 	password?: string
-	expireOn: string
+	expireAt: string
 }
 
 type ServerMessage = {
@@ -84,132 +98,29 @@ type ErrorFields = {
 	url?: string
 	about?: string
 	password?: string
-	expireOn?: string
+	expireAt?: string
 	serverMessage?: ServerMessage
 }
 
 type Link = {
-	id: string
+	_id: string
 	count: number
-	about: string
+	url: string
 	short: string
-	full: string
+	info: string
 	createdAt: string
-	expiringOn: string
+	expireAt: string
+}
+
+type User = {
+	_id: string
+	createdAt: number
+	lastActive: number
+	linksCreated: number
+	username: string
 }
 
 type Links = Array<Link>
-
-const links = [
-	{
-		id: `1`,
-		count: 1,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `2`,
-		count: 2,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `3`,
-		count: 3,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `4`,
-		count: 4,
-		about: `This is some info about this URL`,
-		short: `https://minilink.himanshupal.xyz/ab6c4`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `5`,
-		count: 5,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `6`,
-		count: 6,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `7`,
-		count: 7,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `8`,
-		count: 8,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `9`,
-		count: 9,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `10`,
-		count: 10,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `11`,
-		count: 11,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	},
-	{
-		id: `12`,
-		count: 12,
-		about: `This is some info about this URL`,
-		short: `https://cjdbsc`,
-		full: `https://sacavav`,
-		createdAt: `jdbvchjadcac`,
-		expiringOn: `cjbsjvhjagdhca`
-	}
-]
 
 const validate = (data: string | undefined, name: string, minLength?: number, regex?: RegExp): string => {
 	if (!data) {
@@ -228,7 +139,7 @@ const isEmptyObject = (object: Record<string, any>): boolean => {
 }
 
 export default defineComponent({
-	name: 'Links',
+	name: 'LinksPage',
 
 	components: {
 		Loading,
@@ -238,7 +149,8 @@ export default defineComponent({
 	},
 
 	setup() {
-		const { params } = useRoute()
+		const { params, fullPath } = useRoute()
+		const { push, replace } = useRouter()
 		const { username } = params
 
 		const loading = ref<boolean>(true)
@@ -249,35 +161,40 @@ export default defineComponent({
 
 		const autoClose = ref<number>(5)
 		const showModal = ref<boolean>(false)
+		const showDeleteModal = ref<boolean>(false)
+
+		const data = ref<Links>([])
+		const userData = ref<User>()
+		const formErrors = reactive<ErrorFields>({})
 
 		const now = computed<string>(() => dayjs().format(`YYYY-MM-DDTHH:mm`))
 		const defaultExpiration = ref<string>(dayjs().add(7, 'day').format(`YYYY-MM-DDTHH:mm`))
+		const lastActive = computed<string>(() => formatDate(userData.value?.lastActive))
 
 		const newLink = reactive<NewLink>({
-			expireOn: defaultExpiration.value
+			expireAt: defaultExpiration.value
 		})
-
-		const data = ref<Links>(links)
-		const formErrors = reactive<ErrorFields>({})
 
 		const sharingAllowed = computed<boolean>(() => {
 			return !!navigator.share
 		})
 
-		const share = async (id: string) => {
-			const [toShare] = links.filter((link) => link.id === id)
+		const share = async (_id: string) => {
+			const [toShare] = data.value?.filter((link) => link._id === _id)
+
+			const shortUrl = `${fullPath}/${toShare.count}`
 
 			if (navigator.share) {
 				await navigator.share({
-					title: toShare.about,
-					url: toShare.short
+					title: toShare.info,
+					url: shortUrl
 				})
 				message.value = `Shared...`
 			} else {
-				await navigator.clipboard.writeText(toShare.short)
+				await navigator.clipboard.writeText(shortUrl)
 				message.value = `Short URL copied to clipboard...`
 			}
-			selected.value = id
+			selected.value = _id
 
 			setTimeout(() => {
 				message.value = ``
@@ -285,53 +202,82 @@ export default defineComponent({
 			}, 2500)
 		}
 
-		const clearObjects = () => {
-			for (const key of Object.keys(newLink)) {
-				delete newLink[key as keyof NewLink]
+		const clearFields = (object: Object = newLink) => {
+			for (const key of Object.keys(object)) {
+				delete object[key as keyof typeof object]
 			}
 
 			delete formErrors.serverMessage
 		}
 
-		const createLink = () => {
-			formErrors.url = validate(newLink.url, `URL`, 10, /^(http:\/\/|https:\/\/)/)
+		const createLink = async () => {
+			formErrors.url = validate(newLink.url, `URL`, 10, /^http(s?):\/\//)
 			formErrors.about = validate(newLink.about, `short info`)
 			formErrors.password = validate(newLink.password, `password`, 7)
 
 			if (isEmptyObject(formErrors)) {
-				console.log({ ...newLink })
+				formErrors.serverMessage = {
+					type: `message`,
+					value: `Please wait...`
+				}
 
-				setTimeout(() => {
+				try {
+					const { data: link, status } = await axios.post('/create', {
+						username,
+						password: newLink.password,
+
+						url: newLink.url,
+						info: newLink.about,
+						expireAt: newLink.expireAt
+					})
+
+					if (status === 200) {
+						data.value.push(link)
+						showModal.value = false
+						clearFields()
+					}
+				} catch (error: any) {
+					const err: AxiosError = error
 					formErrors.serverMessage = {
-						type: `message`,
-						value: `Database connection Error!`
+						type: `error`,
+						value: err.response?.data.message
 					}
-
-					{
-						setInterval(() => {
-							if (!autoClose.value) {
-								showModal.value = false
-								clearObjects()
-								data.value.push({
-									id: String(Math.floor(Math.random() * 10)),
-									count: data.value.length + 1,
-									short: `https://newshorturl`,
-									full: newLink.url ?? ``,
-									createdAt: String(Date.now()),
-									expiringOn: newLink.expireOn,
-									about: newLink.about ?? ``
-								})
-							}
-							autoClose.value--
-						}, 1000)
-					}
-				}, 1500)
+				}
 			}
 		}
 
-		const deleteLink = () => {
-			console.log(`${toDelete.value} deleted!`)
-			data.value = data.value.filter((link) => link.id !== toDelete.value)
+		const deleteLink = async () => {
+			formErrors.password = validate(newLink.password, `password`, 7)
+
+			if (isEmptyObject(formErrors)) {
+				formErrors.serverMessage = {
+					type: `message`,
+					value: `Please wait...`
+				}
+
+				try {
+					const { status } = await axios.delete(`/${toDelete.value}`, {
+						data: {
+							password: newLink.password
+						}
+					})
+					if (status === 200) {
+						data.value = data.value.filter((link) => link._id !== toDelete.value)
+						showDeleteModal.value = false
+						clearFields()
+					}
+				} catch (error: any) {
+					const err: AxiosError = error
+					formErrors.serverMessage = {
+						type: `error`,
+						value: err.response?.data.message
+					}
+				}
+			}
+		}
+
+		const formatDate = (timestamp?: number) => {
+			return dayjs(timestamp).format(`ddd, MMM D YYYY' h:m A`)
 		}
 
 		watch(toDelete, (value) => {
@@ -342,10 +288,22 @@ export default defineComponent({
 			}
 		})
 
-		onMounted(() => {
-			setTimeout(() => {
+		onMounted(async () => {
+			try {
+				const { data: fetchedData, status } = await axios.get(`/${username}`)
+
+				if (status === 200) {
+					data.value = fetchedData.data
+					userData.value = fetchedData.user
+				}
+			} catch (error: any) {
+				const err: AxiosError = error
+				if (err.response?.status === 404) {
+					replace({ name: `NotFound` })
+				}
+			} finally {
 				loading.value = false
-			}, 2500)
+			}
 		})
 
 		return {
@@ -353,7 +311,8 @@ export default defineComponent({
 			data,
 			loading,
 
-			userId: `Are you sure to delete this?`,
+			fullPath,
+			lastActive,
 			username,
 			formErrors,
 
@@ -364,11 +323,14 @@ export default defineComponent({
 
 			autoClose,
 			showModal,
+			showDeleteModal,
 			sharingAllowed,
 
+			push,
 			share,
 			createLink,
-			deleteLink
+			deleteLink,
+			formatDate
 		}
 	}
 })
