@@ -35,38 +35,38 @@ div
 							Icon.icon--delete(type="trash" @click="toDelete = link._id")
 							Icon.icon--share(:type="sharingAllowed ? `share` : `copy`" color="#151515" @click="share(link._id)")
 	Modal(v-if="showModal" @close="showModal = false")
-		form.newlink(@submit.prevent="createLink")
-			.newlink__field
+		form.form(@submit.prevent="createLink")
+			.form__field
 				label.label Full URL of Website
-				input.input( v-model="newLink.url")
+				input.input( v-model="form.url")
 				label.label.label--error {{ formErrors.url }}
-			.newlink__field
+			.form__field
 				label.label Short info about this URL
-				input.input(maxlength="48" v-model="newLink.about")
+				input.input(maxlength="48" v-model="form.about")
 				label.label.label--error {{ formErrors.about }}
-			.newlink__field
+			.form__field
 				label.label Your Password
-				input.input(type="password" v-model="newLink.password")
+				input.input(type="password" v-model="form.password")
 				label.label.label--error {{ formErrors.password }}
-			.newlink__field
+			.form__field
 				label.label Expire at
-				input.input(type="datetime-local" v-model="newLink.expireAt" :min="now")
+				input.input(type="datetime-local" v-model="form.expireAt" :min="now")
 				label.label.label--error {{ formErrors.expireAt }}
-			.newlink__field
+			.form__field
 				button.button(type="submit") Shorten Link
 			transition(name="shrink")
-				.newlink__field(v-if="formErrors.serverMessage")
+				.form__field(v-if="formErrors.serverMessage")
 					label.label(:class="[`label--${formErrors.serverMessage.type}`]") {{ formErrors.serverMessage.value }}
 	Modal(v-if="showDeleteModal" @close="showDeleteModal = false")
-		form.newlink(@submit.prevent="deleteLink")
-			.newlink__field
+		form.form(@submit.prevent="deleteLink")
+			.form__field
 				label.label Enter Password
-				input.input(type="password" v-model="newLink.password")
+				input.input(type="password" v-model="form.password")
 				label.label.label--error {{ formErrors.password }}
-			.newlink__field
+			.form__field
 				button.button(type="submit") Delete
 			transition(name="shrink")
-				.newlink__field(v-if="formErrors.serverMessage")
+				.form__field(v-if="formErrors.serverMessage")
 					label.label(:class="[`label--${formErrors.serverMessage.type}`]") {{ formErrors.serverMessage.value }}
 </template>
 
@@ -171,7 +171,7 @@ export default defineComponent({
 		const defaultExpiration = ref<string>(dayjs().add(7, 'day').format(`YYYY-MM-DDTHH:mm`))
 		const lastActive = computed<string>(() => formatDate(userData.value?.lastActive))
 
-		const newLink = reactive<NewLink>({
+		const form = reactive<NewLink>({
 			expireAt: defaultExpiration.value
 		})
 
@@ -202,7 +202,7 @@ export default defineComponent({
 			}, 2500)
 		}
 
-		const clearFields = (object: Object = newLink) => {
+		const clearFields = (object: Object = form) => {
 			for (const key of Object.keys(object)) {
 				delete object[key as keyof typeof object]
 			}
@@ -211,9 +211,9 @@ export default defineComponent({
 		}
 
 		const createLink = async () => {
-			formErrors.url = validate(newLink.url, `URL`, 10, /^http(s?):\/\//)
-			formErrors.about = validate(newLink.about, `short info`)
-			formErrors.password = validate(newLink.password, `password`, 7)
+			formErrors.url = validate(form.url, `URL`, 10, /^http(s?):\/\//)
+			formErrors.about = validate(form.about, `short info`)
+			formErrors.password = validate(form.password, `password`, 7)
 
 			if (isEmptyObject(formErrors)) {
 				formErrors.serverMessage = {
@@ -224,11 +224,11 @@ export default defineComponent({
 				try {
 					const { data: link, status } = await axios.post('/create', {
 						username,
-						password: newLink.password,
+						password: form.password,
 
-						url: newLink.url,
-						info: newLink.about,
-						expireAt: newLink.expireAt
+						url: form.url,
+						info: form.about,
+						expireAt: form.expireAt
 					})
 
 					if (status === 200) {
@@ -247,7 +247,7 @@ export default defineComponent({
 		}
 
 		const deleteLink = async () => {
-			formErrors.password = validate(newLink.password, `password`, 7)
+			formErrors.password = validate(form.password, `password`, 7)
 
 			if (isEmptyObject(formErrors)) {
 				formErrors.serverMessage = {
@@ -258,7 +258,7 @@ export default defineComponent({
 				try {
 					const { status } = await axios.delete(`/${toDelete.value}`, {
 						data: {
-							password: newLink.password
+							password: form.password
 						}
 					})
 					if (status === 200) {
@@ -316,7 +316,7 @@ export default defineComponent({
 			username,
 			formErrors,
 
-			newLink,
+			form,
 			toDelete,
 			message,
 			selected,
