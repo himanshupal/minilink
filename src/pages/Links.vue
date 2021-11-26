@@ -35,9 +35,9 @@ div
 							Icon.icon--delete(type="trash" @click="toDelete = link._id")
 							Icon.icon--share(:type="sharingAllowed ? `share` : `copy`" color="#151515" @click="share(link._id)")
 	Modal(v-if="showModal" @close="showModal = false")
-		form.form(@submit.prevent="createLink")
+		form.form(ref="modal" @submit.prevent="createLink")
 			.form__field
-				label.label Full URL of Website
+				label.label Full URL
 				input.input( v-model="form.url")
 				label.label.label--error {{ formErrors.url }}
 			.form__field
@@ -45,7 +45,7 @@ div
 				input.input(maxlength="48" v-model="form.about")
 				label.label.label--error {{ formErrors.about }}
 			.form__field
-				label.label Your Password
+				label.label Your password
 				input.input(type="password" v-model="form.password")
 				label.label.label--error {{ formErrors.password }}
 			.form__field
@@ -58,7 +58,7 @@ div
 				.form__field(v-if="formErrors.serverMessage")
 					label.label(:class="[`label--${formErrors.serverMessage.type}`]") {{ formErrors.serverMessage.value }}
 	Modal(v-if="showDeleteModal" @close="showDeleteModal = false")
-		form.form(@submit.prevent="deleteLink")
+		form.form(ref="deleteModal" @submit.prevent="deleteLink")
 			.form__field
 				label.label Enter Password
 				input.input(type="password" v-model="form.password")
@@ -166,6 +166,9 @@ export default defineComponent({
 		const data = ref<Links>([])
 		const userData = ref<User>()
 		const formErrors = reactive<ErrorFields>({})
+
+		const modal = ref<HTMLDivElement>()
+		const deleteModal = ref<HTMLDivElement>()
 
 		const now = computed<string>(() => dayjs().format(`YYYY-MM-DDTHH:mm`))
 		const defaultExpiration = ref<string>(dayjs().add(7, 'day').format(`YYYY-MM-DDTHH:mm`))
@@ -288,6 +291,34 @@ export default defineComponent({
 			}
 		})
 
+		watch(showModal, (v) => {
+			const checkClickArea = (e: any) => {
+				if (e.target.contains(modal.value)) {
+					showModal.value = !showModal.value
+				}
+			}
+
+			if (v) {
+				document.addEventListener('click', checkClickArea)
+			} else {
+				document.removeEventListener('click', checkClickArea)
+			}
+		})
+
+		watch(showDeleteModal, (v) => {
+			const checkClickArea = (e: any) => {
+				if (e.target.contains(deleteModal.value)) {
+					showDeleteModal.value = !showDeleteModal.value
+				}
+			}
+
+			if (v) {
+				document.addEventListener('click', checkClickArea)
+			} else {
+				document.removeEventListener('click', checkClickArea)
+			}
+		})
+
 		onMounted(async () => {
 			try {
 				const { data: fetchedData, status } = await axios.get(`/${username}`)
@@ -317,6 +348,8 @@ export default defineComponent({
 			formErrors,
 
 			form,
+			modal,
+			deleteModal,
 			toDelete,
 			message,
 			selected,

@@ -19,7 +19,7 @@
 		position: relative;
 		z-index: 0;
 		min-width: 50%;
-		min-height: 150px;
+		min-height: 140px;
 
 		.icon {
 			width: 30px;
@@ -28,7 +28,6 @@
 			cursor: pointer;
 			position: absolute;
 			border-radius: 2px;
-			display: none;
 
 			&--delete {
 				top: 0.5rem;
@@ -152,6 +151,8 @@
 			}
 
 			.icon {
+				display: none;
+
 				&--share {
 					top: 3rem;
 				}

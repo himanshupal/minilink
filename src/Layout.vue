@@ -1,6 +1,6 @@
 <template lang="pug">
 router-view
-footer.footer(v-if="includeFooter")
+//- footer.footer(v-if="includeFooter")
 	|	Built by
 	a(href="https://himanshupal.xyz" target="_blank") @himanshupal
 	| using
