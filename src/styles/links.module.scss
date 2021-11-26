@@ -143,8 +143,9 @@
 		padding: 1.5rem 4.5rem;
 
 		&__card {
+			min-height: 165px;
 			min-width: 326px;
-			max-width: 33%;
+			max-width: 420px;
 
 			&__count {
 				font-size: 126px;
